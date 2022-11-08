@@ -1,26 +1,26 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{% raw %}{{% endraw %}{% unless minimal %}to_binary, {% endunless %}Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
-{% if minimal %}// {% endif %}use cw2::set_contract_version;
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cw2::set_contract_version;
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, {% unless minimal %}GetCountResponse, {% endunless %}InstantiateMsg, QueryMsg};
-{% unless minimal %}use crate::state::{State, STATE};
-{% endunless %}
-{% if minimal %}/*
-{% endif %}// version info for migration info
+use crate::msg::{ExecuteMsg, GetCountResponse, InstantiateMsg, QueryMsg};
+use crate::state::{State, STATE};
+
+
+//  version info for migration info
 const CONTRACT_NAME: &str = "crates.io:{{project-name}}";
 const CONTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-{% if minimal %}*/
-{% endif %}
+
+
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
-    {% if minimal %}_{% endif %}deps: DepsMut,
+    deps: DepsMut,
     _env: Env,
-    {% if minimal %}_{% endif %}info: MessageInfo,
-    {% if minimal %}_{% endif %}msg: InstantiateMsg,
+    info: MessageInfo,
+    msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
-    {% if minimal %}unimplemented!(){% else %}let state = State {
+    let state = State {
         count: msg.count,
         owner: info.sender.clone(),
     };
@@ -30,21 +30,25 @@ pub fn instantiate(
     Ok(Response::new()
         .add_attribute("method", "instantiate")
         .add_attribute("owner", info.sender)
-        .add_attribute("count", msg.count.to_string())){% endif %}
+        .add_attribute("count", msg.count.to_string()))
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
-    {% if minimal %}_{% endif %}deps: DepsMut,
+    deps: DepsMut,
     _env: Env,
-    {% if minimal %}_{% endif %}info: MessageInfo,
-    {% if minimal %}_{% endif %}msg: ExecuteMsg,
+    info: MessageInfo,
+    msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
-    {% if minimal %}unimplemented!(){% else %}match msg {
+    match msg {
         ExecuteMsg::Increment {} => execute::increment(deps),
+        ExecuteMsg::Decrement {} => execute::decrement(deps),
+        ExecuteMsg::DecrementBy { amount} => execute::decrement_by(deps, amount),
+        ExecuteMsg::IncrementBy {amount} => execute::increment_by(deps, amount),
+        ExecuteMsg::UpdateState {new_value} => execute::update_state(deps, new_value),
         ExecuteMsg::Reset { count } => execute::reset(deps, info, count),
-    }{% endif %}
-}{% unless minimal %}
+    }
+}
 
 pub mod execute {
     use super::*;
@@ -58,6 +62,43 @@ pub mod execute {
         Ok(Response::new().add_attribute("action", "increment"))
     }
 
+    pub fn increment_by(deps: DepsMut, amount:i32) -> Result<Response, ContractError> {
+        STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
+            state.count += amount;
+            Ok(state)
+        })?;
+
+        Ok(Response::new().add_attribute("action", "increment"))
+    }
+
+
+    pub fn decrement(deps: DepsMut) -> Result<Response, ContractError> {
+        STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
+            state.count -= 1;
+            Ok(state)
+        })?;
+
+        Ok(Response::new().add_attribute("action", "decrement"))
+    }
+
+    pub fn decrement_by(deps: DepsMut, amount:i32) -> Result<Response, ContractError> {
+        STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
+            state.count -= amount;
+            Ok(state)
+        })?;
+
+        Ok(Response::new().add_attribute("action", "decrement"))
+    }
+
+    pub fn update_state(deps: DepsMut, new_value:i32) -> Result<Response, ContractError> {
+        STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
+            state.count = new_value;
+            Ok(state)
+        })?;
+
+        Ok(Response::new().add_attribute("action", "decrement"))
+    }
+
     pub fn reset(deps: DepsMut, info: MessageInfo, count: i32) -> Result<Response, ContractError> {
         STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
             if info.sender != state.owner {
@@ -68,14 +109,15 @@ pub mod execute {
         })?;
         Ok(Response::new().add_attribute("action", "reset"))
     }
-}{% endunless %}
+}
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query({% if minimal %}_{% endif %}deps: Deps, _env: Env, {% if minimal %}_{% endif %}msg: QueryMsg) -> StdResult<Binary> {
-    {% if minimal %}unimplemented!(){% else %}match msg {
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+    match msg {
         QueryMsg::GetCount {} => to_binary(&query::count(deps)?),
-    }{% endif %}
-}{% unless minimal %}
+        QueryMsg::HasReset {} => to_binary(&query::has_reset(deps)?),
+    }
+}
 
 pub mod query {
     use super::*;
@@ -84,10 +126,16 @@ pub mod query {
         let state = STATE.load(deps.storage)?;
         Ok(GetCountResponse { count: state.count })
     }
-}{% endunless %}
+
+    pub fn has_reset(deps: Deps) -> StdResult<bool> {
+        let state = STATE.load(deps.storage)?;
+        Ok( state.count == 0)
+    }
+    
+}
 
 #[cfg(test)]
-mod tests {% raw %}{{% endraw %}{% unless minimal %}
+mod tests {
     use super::*;
     use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
     use cosmwasm_std::{coins, from_binary};
@@ -155,4 +203,4 @@ mod tests {% raw %}{{% endraw %}{% unless minimal %}
         let value: GetCountResponse = from_binary(&res).unwrap();
         assert_eq!(5, value.count);
     }
-{% endunless %}}
+}
