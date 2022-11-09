@@ -1,5 +1,3 @@
-
-
 use cosmwasm_std::{ Deps, StdResult};
 
 use crate::state::{STATE};

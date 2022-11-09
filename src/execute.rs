@@ -6,6 +6,7 @@ use cosmwasm_std::{DepsMut, MessageInfo, Response};
 pub fn execute_increment_by(deps: DepsMut, amount:i32) -> Result<Response, ContractError> {
     STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
         state.count += &amount;
+        
         Ok(state)
     })?;
     Ok(Response::new().add_attribute("action", "increment").add_attribute("amount", amount.to_string()))
@@ -14,6 +15,9 @@ pub fn execute_increment_by(deps: DepsMut, amount:i32) -> Result<Response, Contr
 pub fn execute_decrement_by(deps: DepsMut, amount:i32) -> Result<Response, ContractError> {
     STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
         state.count -= &amount;
+        if state.count <= 0 {
+            return Err(ContractError::ShouldBePositive {});
+        }
         Ok(state)
     })?;
     Ok(Response::new().add_attribute("action", "decrement").add_attribute("amount", amount.to_string()))
