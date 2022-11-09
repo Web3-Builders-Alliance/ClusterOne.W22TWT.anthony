@@ -26,6 +26,9 @@ pub enum QueryMsg {
     HasReset {},
 }
 
+#[cw_serde]
+pub struct MigrateMsg {}
+
 // We define a custom struct for each query response
 #[cw_serde]
 pub struct GetCountResponse {
