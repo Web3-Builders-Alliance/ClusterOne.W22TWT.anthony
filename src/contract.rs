@@ -7,7 +7,7 @@ use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg};
 use crate::state::{State, STATE};
 
-use crate::execute::{execute_decrement_by, execute_increment_by, execute_reset, execute_update_state};
+use crate::execute::{execute_decrement_by, execute_increment_by, execute_reset};
 use crate::query::{count, has_reset};
 
 //  version info for migration info
@@ -47,7 +47,7 @@ pub fn execute(
         ExecuteMsg::Decrement {} => execute_decrement_by(deps, 1),
         ExecuteMsg::DecrementBy { amount} => execute_decrement_by(deps, amount),
         ExecuteMsg::IncrementBy {amount} => execute_increment_by(deps, amount),
-        ExecuteMsg::UpdateState {new_value} => execute_update_state(deps, new_value),
+        // ExecuteMsg::UpdateState {new_value} => execute_update_state(deps, new_value),
         ExecuteMsg::Reset { count } => execute_reset(deps, info, count),
     }
 }

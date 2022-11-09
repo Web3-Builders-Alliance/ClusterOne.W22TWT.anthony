@@ -11,7 +11,7 @@ pub enum ExecuteMsg {
     Decrement{},
     DecrementBy {amount:i32},
     IncrementBy {amount:i32},
-    UpdateState {new_value:i32},
+    // UpdateState {new_value:i32}, does the same thing as Reset ?!
     Reset { count: i32 },
 }
 

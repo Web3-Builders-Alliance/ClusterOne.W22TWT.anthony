@@ -1,9 +1,11 @@
 #[cfg(test)]
 
+// TODO add missing tests
+
 /*  Proper initialization Ok
     ExecuteMsg::Reset Ok
-    ExecuteMsg::DecrementBy 
-    ExecuteMsg::IncrementBy
+    ExecuteMsg::DecrementBy Ok
+    ExecuteMsg::IncrementBy Ok
     ExecuteMsg::UpdateState
     QueryMsg::GetCount
     QueryMsg::HasReset
@@ -32,6 +34,7 @@ fn proper_initialization() {
     let value: GetCountResponse = from_binary(&res).unwrap();
     assert_eq!(17, value.count);
 }
+
 #[test]
 fn increment() {
     let mut deps = mock_dependencies();
@@ -47,6 +50,55 @@ fn increment() {
     let value: GetCountResponse = from_binary(&res).unwrap();
     assert_eq!(18, value.count);
 }
+
+#[test]
+fn increment_by() {
+    let mut deps = mock_dependencies();
+    let msg = InstantiateMsg { count: 17 };
+    let info = mock_info("creator", &coins(2, "token"));
+    let _res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
+    // beneficiary can release it
+    let info = mock_info("anyone", &coins(2, "token"));
+    let msg = ExecuteMsg::IncrementBy { amount: 17 };
+    let _res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
+    // should increase counter by 1
+    let res = query(deps.as_ref(), mock_env(), QueryMsg::GetCount {}).unwrap();
+    let value: GetCountResponse = from_binary(&res).unwrap();
+    assert_eq!(34, value.count);
+}
+
+#[test]
+fn decrement() {
+    let mut deps = mock_dependencies();
+    let msg = InstantiateMsg { count: 17 };
+    let info = mock_info("creator", &coins(2, "token"));
+    let _res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
+    // beneficiary can release it
+    let info = mock_info("anyone", &coins(2, "token"));
+    let msg = ExecuteMsg::Decrement {};
+    let _res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
+    // should increase counter by 1
+    let res = query(deps.as_ref(), mock_env(), QueryMsg::GetCount {}).unwrap();
+    let value: GetCountResponse = from_binary(&res).unwrap();
+    assert_eq!(16, value.count);
+}
+
+#[test]
+fn decrement_by() {
+    let mut deps = mock_dependencies();
+    let msg = InstantiateMsg { count: 17 };
+    let info = mock_info("creator", &coins(2, "token"));
+    let _res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
+    // beneficiary can release it
+    let info = mock_info("anyone", &coins(2, "token"));
+    let msg = ExecuteMsg::DecrementBy { amount: 17 };
+    let _res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
+    // should increase counter by 1
+    let res = query(deps.as_ref(), mock_env(), QueryMsg::GetCount {}).unwrap();
+    let value: GetCountResponse = from_binary(&res).unwrap();
+    assert_eq!(0, value.count);
+}
+
 #[test]
 fn reset() {
     let mut deps = mock_dependencies();
@@ -69,4 +121,29 @@ fn reset() {
     let res = query(deps.as_ref(), mock_env(), QueryMsg::GetCount {}).unwrap();
     let value: GetCountResponse = from_binary(&res).unwrap();
     assert_eq!(5, value.count);
-}}
+}
+
+// #[test]
+// fn updateState() {
+//     let mut deps = mock_dependencies();
+//     let msg = InstantiateMsg { count: 17 };
+//     let info = mock_info("creator", &coins(2, "token"));
+//     let _res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
+//     // beneficiary can release it
+//     let unauth_info = mock_info("anyone", &coins(2, "token"));
+//     let msg = ExecuteMsg::UpdateState { new_value: 8 };
+//     let res = execute(deps.as_mut(), mock_env(), unauth_info, msg);
+//     match res {
+//         Err(ContractError::Unauthorized {}) => {}
+//         _ => panic!("Must return unauthorized error"),
+//     }
+//     // only the original creator can reset the counter
+//     let auth_info = mock_info("creator", &coins(2, "token"));
+//     let msg = ExecuteMsg::Reset { count: 5 };
+//     let _res = execute(deps.as_mut(), mock_env(), auth_info, msg).unwrap();
+//     // should now be 5
+//     let res = query(deps.as_ref(), mock_env(), QueryMsg::GetCount {}).unwrap();
+//     let value: GetCountResponse = from_binary(&res).unwrap();
+//     assert_eq!(5, value.count);
+// }
+}
