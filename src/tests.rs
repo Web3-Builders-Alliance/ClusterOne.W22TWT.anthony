@@ -91,12 +91,12 @@ fn decrement_by() {
     let _res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
     // beneficiary can release it
     let info = mock_info("anyone", &coins(2, "token"));
-    let msg = ExecuteMsg::DecrementBy { amount: 17 };
+    let msg = ExecuteMsg::DecrementBy { amount: 16 };
     let _res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
     // should decrease counter by 17
     let res = query(deps.as_ref(), mock_env(), QueryMsg::GetCount {}).unwrap();
     let value: GetCountResponse = from_binary(&res).unwrap();
-    assert_eq!(0, value.count);
+    assert_eq!(1, value.count);
 }
 
 #[test]
@@ -132,7 +132,7 @@ fn has_reset() {
     
     // beneficiary can release it
     let auth_info = mock_info("creator", &coins(2, "token"));
-    let msg = ExecuteMsg::Reset { count: 5 };
+    let msg = ExecuteMsg::Reset { count: 0 };
     let _res = execute(deps.as_mut(), mock_env(), auth_info, msg).unwrap();
     
     // should now be 5
