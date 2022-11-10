@@ -1,4 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
+use cosmwasm_std::Coin;
 
 #[cw_serde]
 pub struct InstantiateMsg {
@@ -11,6 +12,11 @@ pub enum ExecuteMsg {
     Decrement{},
     DecrementBy {amount:i32},
     IncrementBy {amount:i32},
+    SendFund {recipient: String, coin: Coin},
+    
+    // more examples
+    AddCosmosMsg{},
+    AddSubMsg{},
     // UpdateState {new_value:i32}, does the same thing as Reset ?!
     Reset { count: i32 },
 }

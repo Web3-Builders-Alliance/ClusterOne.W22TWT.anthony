@@ -1,13 +1,13 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, CosmosMsg, BankMsg, Coin, Uint128, SubMsg, ReplyOn, WasmMsg, coins};
 use cw2::set_contract_version;
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg};
 use crate::state::{State, STATE};
 
-use crate::execute::{execute_decrement_by, execute_increment_by, execute_reset};
+use crate::execute::{execute_decrement_by, execute_increment_by, execute_reset, execute_send_fund};
 use crate::query::{count, has_reset};
 
 //  version info for migration info
@@ -48,6 +48,22 @@ pub fn execute(
         ExecuteMsg::DecrementBy { amount} => execute_decrement_by(deps, amount),
         ExecuteMsg::IncrementBy {amount} => execute_increment_by(deps, amount),
         ExecuteMsg::Reset { count } => execute_reset(deps, info, count),
+        ExecuteMsg::AddCosmosMsg {  } => {
+            return Ok(Response::new().add_message(CosmosMsg::Bank(BankMsg::Send {
+                to_address: "cosmos1ghekyjucln7y67ntx7cf27m9dpuxxemn4c8gza".to_string(),
+                amount: vec![Coin {
+                    denom: "uatom".to_string(),
+                    amount: Uint128::from(1000000u128),
+                }],
+            })))
+        },
+        ExecuteMsg::AddSubMsg {  } => {
+            let msg = BankMsg::Send { to_address: String::from("you"), amount: coins(1015, "earth") };
+            Ok(Response::new().add_submessage(SubMsg::reply_on_success(msg,  0)))     
+        },
+
+        
+        ExecuteMsg::SendFund { recipient, coin }=> execute_send_fund(deps, info, recipient, coin),
     }
 }
 

@@ -1,6 +1,7 @@
 use crate::state::{STATE};
 use crate::error::ContractError;
-use cosmwasm_std::{DepsMut, MessageInfo, Response};
+use cosmwasm_std::{DepsMut, MessageInfo, Response, SubMsg, Coin, BankMsg};
+
 
 
 pub fn execute_increment_by(deps: DepsMut, amount:i32) -> Result<Response, ContractError> {
@@ -40,4 +41,16 @@ pub fn execute_reset(deps: DepsMut, info: MessageInfo, count: i32) -> Result<Res
         Ok(state)
     })?;
     Ok(Response::new().add_attribute("action", "reset"))
+}
+
+pub fn execute_send_fund(deps: DepsMut,_info:MessageInfo, recipient:String, coin:Coin) -> Result<Response, ContractError> {
+    // validate addr
+    let valid_addr = deps.api.addr_validate(&recipient)?;
+
+    // we could check if recipient is the same as info.sender, no point in sending yourself some Coin
+
+    // create a message to send some Coin
+    let send_fund_msg: SubMsg = SubMsg::new(BankMsg::Send{amount:vec![coin], to_address:valid_addr.to_string()});
+       
+    Ok(Response::new().add_submessage(send_fund_msg))
 }
