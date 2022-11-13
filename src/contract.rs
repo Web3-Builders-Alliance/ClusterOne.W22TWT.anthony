@@ -49,7 +49,7 @@ pub fn execute(
         ExecuteMsg::IncrementBy {amount} => execute_increment(deps, Some(amount)),
         ExecuteMsg::Reset { count } => execute_reset(deps, info, count),
         ExecuteMsg::AddCosmosMsg {  } => {
-            return Ok(Response::new().add_message(CosmosMsg::Bank(BankMsg::Send {
+            Ok(Response::new().add_message(CosmosMsg::Bank(BankMsg::Send {
                 to_address: "cosmos1ghekyjucln7y67ntx7cf27m9dpuxxemn4c8gza".to_string(),
                 amount: vec![Coin {
                     denom: "uatom".to_string(),
