@@ -4,33 +4,37 @@ use cosmwasm_std::{DepsMut, MessageInfo, Response, SubMsg, Coin, BankMsg};
 
 
 
-pub fn execute_increment_by(deps: DepsMut, amount:i32) -> Result<Response, ContractError> {
+pub fn execute_increment(deps: DepsMut, amount:Option<i32>) -> Result<Response, ContractError> {
     STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
-        state.count += &amount;
-        
+        match amount {
+            Some(amount) => state.count += amount,
+            None => state.count += 1,
+        }        
         Ok(state)
     })?;
-    Ok(Response::new().add_attribute("action", "increment").add_attribute("amount", amount.to_string()))
+
+    Ok(Response::new().add_attribute("action", "increment").add_attribute("amount", match amount {
+        Some(amount) => amount.to_string(),
+        None => "1".to_string(),
+    }))
+
 }
 
-pub fn execute_decrement_by(deps: DepsMut, amount:i32) -> Result<Response, ContractError> {
+
+pub fn execute_decrement(deps: DepsMut, amount:Option<i32>) -> Result<Response, ContractError> {
     STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
-        state.count -= &amount;
-        if state.count <= 0 {
-            return Err(ContractError::ShouldBePositive {});
-        }
+        match amount {
+            Some(amount) => state.count -= amount,
+            None => state.count -= 1,
+        }        
         Ok(state)
     })?;
-    Ok(Response::new().add_attribute("action", "decrement").add_attribute("amount", amount.to_string()))
-}
 
-// pub fn execute_update_state(deps: DepsMut, new_value:i32) -> Result<Response, ContractError> {
-//     STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {
-//         state.count = new_value;
-//         Ok(state)
-//     })?;
-//     Ok(Response::new().add_attribute("action", "update_state").add_attribute("new_value", new_value.to_string()))
-// }
+    Ok(Response::new().add_attribute("action", "decrement").add_attribute("amount", match amount {
+        Some(amount) => amount.to_string(),
+        None => "1".to_string(),
+    }))
+}
 
 pub fn execute_reset(deps: DepsMut, info: MessageInfo, count: i32) -> Result<Response, ContractError> {
     STATE.update(deps.storage, |mut state| -> Result<_, ContractError> {

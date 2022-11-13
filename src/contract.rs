@@ -1,13 +1,13 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
-use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, CosmosMsg, BankMsg, Coin, Uint128, SubMsg, ReplyOn, WasmMsg, coins};
+use cosmwasm_std::{to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult, CosmosMsg, BankMsg, Coin, Uint128, SubMsg, coins,   };
 use cw2::set_contract_version;
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg, MigrateMsg};
 use crate::state::{State, STATE};
 
-use crate::execute::{execute_decrement_by, execute_increment_by, execute_reset, execute_send_fund};
+use crate::execute::{execute_decrement, execute_increment, execute_reset, execute_send_fund};
 use crate::query::{count, has_reset};
 
 //  version info for migration info
@@ -43,10 +43,10 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Increment {} => execute_increment_by(deps, 1),
-        ExecuteMsg::Decrement {} => execute_decrement_by(deps, 1),
-        ExecuteMsg::DecrementBy { amount} => execute_decrement_by(deps, amount),
-        ExecuteMsg::IncrementBy {amount} => execute_increment_by(deps, amount),
+        ExecuteMsg::Increment {} => execute_increment(deps, None),
+        ExecuteMsg::Decrement {} => execute_decrement(deps, None),
+        ExecuteMsg::DecrementBy { amount} => execute_decrement(deps, Some(amount)),
+        ExecuteMsg::IncrementBy {amount} => execute_increment(deps, Some(amount)),
         ExecuteMsg::Reset { count } => execute_reset(deps, info, count),
         ExecuteMsg::AddCosmosMsg {  } => {
             return Ok(Response::new().add_message(CosmosMsg::Bank(BankMsg::Send {
@@ -62,7 +62,7 @@ pub fn execute(
             Ok(Response::new().add_submessage(SubMsg::reply_on_success(msg,  0)))     
         },
 
-        
+
         ExecuteMsg::SendFund { recipient, coin }=> execute_send_fund(deps, info, recipient, coin),
     }
 }
